@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap, env::set_var, error::Error, fmt::Display, fs::File, io::BufReader,
+    collections::HashMap, fmt::Display,
     iter::Peekable, str::Chars,
 };
 
@@ -30,6 +30,7 @@ pub enum TokenType {
     INST_INDUP,
     INST_ISWAP,
 }
+
 #[derive(Debug)]
 pub struct Token {
     type_: TokenType,
@@ -61,11 +62,33 @@ impl<'a> Lexer<'a> {
         map.insert("CMPE".to_owned(), TokenType::INST_CMPE);
         map.insert("DUP".to_owned(), TokenType::INST_DUP);
         map.insert("ADD".to_owned(), TokenType::INST_ADD);
+        map.insert("CMPNE".to_owned(),TokenType::INST_CMPNE);
+        map.insert("SWAP".to_owned(), TokenType::INST_SWAP);
+        map.insert("SUB".to_owned(), TokenType::INST_SUB);
+        map.insert("MUL".to_owned(), TokenType::INST_MUL);
+        map.insert("DIV".to_owned(),TokenType::INST_DIV);
+        
+        map.insert("PRINT".to_owned(), TokenType::INST_PRINT);
+        map.insert("ZJUMP".to_owned(), TokenType::INST_ZJMP);
+        map.insert("NZJUMP".to_owned(), TokenType::INST_NZJMP);
+        map.insert("CMPG".to_owned(),TokenType::INST_CMPG);
+        map.insert("CMPL".to_owned(), TokenType::INST_CMPL);
+        map.insert("MOD".to_owned(), TokenType::INST_MOD);
+        map.insert("CMPGE".to_owned(), TokenType::INST_CMPGE);
+        map.insert("CMPLE".to_owned(),TokenType::INST_CMPLE);
+
+        map.insert("JUMP".to_owned(), TokenType::INST_JP);
+        map.insert("NOP".to_owned(), TokenType::INST_NOP);
+        map.insert("HALT".to_owned(), TokenType::INST_HALT);
+        map.insert("INDUP".to_owned(), TokenType::INST_INDUP);
+        map.insert("ISWAP".to_owned(),TokenType::INST_ISWAP);
+
         Self {
             data: data.chars().peekable(),
             tokens: vec![],
             keywords: map,
         }
+
     }
     pub fn push_token(&mut self, type_: TokenType, value: Option<i32>) {
         let token = Token { type_, value };
@@ -83,7 +106,7 @@ impl<'a> Lexer<'a> {
                     {
                         digit.push(self.data.next().unwrap());
                     }
-                    println!("=>{}", digit);
+                    //println!("=>{}", digit);
                     let data: i32 = digit.parse().unwrap();
                     self.push_token(TokenType::INT, Some(data));
                 }
@@ -96,7 +119,7 @@ impl<'a> Lexer<'a> {
                         let d = self.data.next().unwrap();
                         key.push(d);
                     }
-                    println!("=>{}", key);
+                    //println!("=>{}", key);
                     let token = self.keywords.get(&key);
                     if let Some(a) = token {
                         self.push_token(*a, None);

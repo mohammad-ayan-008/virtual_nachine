@@ -94,7 +94,8 @@ impl<'a> Lexer<'a> {
         let token = Token { type_, value };
         self.tokens.push(token);
     }
-    pub fn lexe(&mut self) -> Result<(), String> {
+    // till the mutable reffrence is alive the result is alive 
+    pub fn lexe(&'a mut self) -> Result<&'a [Token], String> {
         while let Some(a) = self.data.next() {
             match a {
                 x if x.is_ascii_whitespace() || x == '\n' => {}
@@ -130,6 +131,6 @@ impl<'a> Lexer<'a> {
                 _ => return Err(format!("uknown symbol {a}")),
             }
         }
-        Ok(())
+        Ok(&self.tokens.as_slice())
     }
 }

@@ -24,9 +24,10 @@ macro_rules! INS {
 
 fn main() {
     let data = fs::read_to_string("test.msm").unwrap();
-    let mut lexer = Lexer::read_source(&data);
-    lexer.lexe().unwrap();
-    println!("{:?}", lexer.tokens);
+    let mut lexer = Lexer::read_source(&data); 
+    let d = lexer.lexe().unwrap();
+    println!("{:?}",d);
+
     let mut program3 = [
         INS!(1, INST_PUSH),
         INS!(2, INST_PUSH),

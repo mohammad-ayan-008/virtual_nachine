@@ -1,0 +1,1 @@
+/home/mohda/virtual_machine/target/debug/virtual_tsoding: /home/mohda/virtual_machine/src/instructions.rs /home/mohda/virtual_machine/src/lexer.rs /home/mohda/virtual_machine/src/main.rs /home/mohda/virtual_machine/src/virtual_m.rs

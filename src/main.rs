@@ -3,14 +3,17 @@ use crate::instructions::Inst_Set;
 use crate::instructions::Pad;
 use crate::lexer::Lexer;
 use crate::virtual_m::Vm;
+use std::env::args;
 use std::fs;
 use std::{
     fs::File,
     io::{Read, Write},
     vec,
 };
+mod codegen;
 mod instructions;
 mod lexer;
+mod parser;
 mod virtual_m;
 
 macro_rules! INS {
@@ -23,10 +26,36 @@ macro_rules! INS {
 }
 
 fn main() {
-    let data = fs::read_to_string("test.msm").unwrap();
-    let mut lexer = Lexer::read_source(&data); 
-    let d = lexer.lexe().unwrap();
-    println!("{:?}",d);
+    let arg: Vec<String> = args().collect();
+    if arg.len() > 1 {
+        println!("{:?}", arg);
+        if &arg[1] == "r" {
+            let code = read_from_file(&arg[2]);
+            let mut vm = Vm::default();
+            vm.copy_ins(&code);
+            vm.start();
+        } else if &arg[1] == "b" {
+            let file_name = &arg[2];
+            if !file_name.contains(".tim") {
+                panic!("uknown file type");
+            }
+            let data = fs::read_to_string(file_name).unwrap();
+            let mut lexer = Lexer::read_source(&data);
+            let mut parser = parser::Parser::new(&mut lexer);
+            let codegen = codegen::CodeGen::new(parser.parse());
+            let file_name =file_name.replace(".tim", ".msm");
+            codegen.generat_(&file_name);
+        }
+    }
+}
+/*
+fn write_to_file(path: &str, program: &mut [Inst_Set]) {
+    let mut file = File::create(path).unwrap();
+    let bytes: &[u8] = bytemuck::must_cast_slice(program);
+    // println!("{:?}",bytes);
+    file.write_all(bytes).unwrap();
+}
+
 
     let mut program3 = [
         INS!(1, INST_PUSH),
@@ -38,22 +67,7 @@ fn main() {
         INS!(INST_PRINT),
         INS!(INST_PRINT),
     ];
-
-    write_to_file("test5.tim", &mut program3);
-    let mut vm = Vm::default();
-    let data = read_from_file("test5.tim");
-
-    vm.copy_ins(&data);
-    vm.start();
-}
-
-fn write_to_file(path: &str, program: &mut [Inst_Set]) {
-    let mut file = File::create(path).unwrap();
-    let bytes: &[u8] = bytemuck::must_cast_slice(program);
-    // println!("{:?}",bytes);
-    file.write_all(bytes).unwrap();
-}
-
+*/
 fn read_from_file(path: &str) -> Vec<Inst_Set> {
     let mut file = File::open(path).unwrap();
     let mut data = Vec::new();

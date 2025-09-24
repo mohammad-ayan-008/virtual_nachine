@@ -1,18 +1,21 @@
-use std::{fs::File, io::Write};
+use std::{collections::HashMap, fs::File, io::Write, ops::Deref, panic};
 
 use crate::{
     instructions::{self, Inst_Set, Pad},
-    parser::{Literal, ParseValue},
+    parser::{self, Literal, ParseValue, Parser},
 };
 
 pub struct CodeGen {
     ast: Vec<ParseValue>,
+    labels:HashMap<String,i32>,
 }
 
 impl CodeGen {
-    pub fn new(values: &[ParseValue]) -> Self {
+    pub fn new(parser:&mut Parser) -> Self {
+
         Self {
-            ast: values.to_vec(),
+            ast: parser.parse().to_vec(),
+            labels:parser.labels.clone()
         }
     }
 
@@ -22,7 +25,9 @@ impl CodeGen {
         for i in self.ast {
             match i {
                 ParseValue::PUSH { token, value } => {
-                    let Literal::INT(value) = value;
+                    let Literal::INT(value) = value else{
+                        panic!("expected integer")
+                    };
 
                     code.push(instructions::Inst_Set::INST_PUSH { value });
                 }
@@ -57,16 +62,31 @@ impl CodeGen {
                     code.push(instructions::Inst_Set::INST_PRINT { _pad: Pad::Padding });
                 }
                 ParseValue::ZJMP { token, value } => {
-                    let Literal::INT(a) = value;
-                    code.push(instructions::Inst_Set::INST_ZJMP { value: a as u32 });
+                    let Literal::STRING(a) = value else{
+                        panic!("Expected Label name");
+                    };
+                    let Some(value) = self.labels.get(&a.clone().to_string()) else{
+                        panic!("")
+                    };
+                    code.push(instructions::Inst_Set::INST_ZJMP { value: *value });
                 }
                 ParseValue::NZJMP { token, value } => {
-                    let Literal::INT(a) = value;
-                    code.push(instructions::Inst_Set::INST_NZJMP { value: a as u32 });
+                    let Literal::STRING(a) = value else{
+                        panic!("Expected Label name");
+                    };
+                    let Some(value) = self.labels.get(&a.clone().to_string()) else{
+                        panic!("expected int");
+                    };
+                    code.push(instructions::Inst_Set::INST_NZJMP { value: *value });
                 }
                 ParseValue::JP { token, value } => {
-                    let Literal::INT(a) = value;
-                    code.push(instructions::Inst_Set::INST_JP { value: a as u32 });
+                    let Literal::STRING(a) = value else{
+                        panic!("Expected Label name");
+                    };
+                    println!("{:?}",self.labels);
+                    let value = a.deref();
+                    let value= self.labels.get(value).unwrap();
+                    code.push(instructions::Inst_Set::INST_JP { value: *value});                
                 }
                 ParseValue::CMPG { token } => {
                     code.push(instructions::Inst_Set::INST_CMPG { _pad: Pad::Padding });
@@ -90,12 +110,16 @@ impl CodeGen {
                     code.push(instructions::Inst_Set::INST_HALT { _pad: Pad::Padding });
                 }
                 ParseValue::INDUP { token, value } => {
-                    let Literal::INT(a) = value;
-                    code.push(instructions::Inst_Set::INST_INDUP { value: a as u32 });
+                    let Literal::INT(a) = value else{
+                        panic!("expected int");
+                    };
+                    code.push(instructions::Inst_Set::INST_INDUP { value: a as i32 });
                 }
                 ParseValue::ISWAP { token, value } => {
-                    let Literal::INT(a) = value;
-                    code.push(instructions::Inst_Set::INST_ISWAP { value: a as u32 });
+                    let Literal::INT(a) = value else{
+                        panic!("expected int");
+                    };
+                    code.push(instructions::Inst_Set::INST_ISWAP { value: a as i32 });
                 }
                 ParseValue::EOF => {}
             }

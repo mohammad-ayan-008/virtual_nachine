@@ -4,6 +4,7 @@ use crate::instructions::Pad;
 use crate::lexer::Lexer;
 use crate::virtual_m::Vm;
 use std::env::args;
+use std::env::set_var;
 use std::fs;
 use std::{
     fs::File,
@@ -31,6 +32,7 @@ fn main() {
         println!("{:?}", arg);
         if &arg[1] == "r" {
             let code = read_from_file(&arg[2]);
+            println!("{:#?}",code);
             let mut vm = Vm::default();
             vm.copy_ins(&code);
             vm.start();
@@ -42,7 +44,7 @@ fn main() {
             let data = fs::read_to_string(file_name).unwrap();
             let mut lexer = Lexer::read_source(&data);
             let mut parser = parser::Parser::new(&mut lexer);
-            let codegen = codegen::CodeGen::new(parser.parse());
+            let codegen = codegen::CodeGen::new(&mut parser);
             let file_name =file_name.replace(".tim", ".msm");
             codegen.generat_(&file_name);
         }

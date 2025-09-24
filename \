@@ -7,7 +7,6 @@ use crate::lexer::{self, Lexer, Token, TokenType, LEXVALUES};
 #[derive(Debug, Clone)]
 pub enum Literal {
     INT(i32),
-    STRING(Rc<String>),
 }
 
 #[derive(Debug, Clone)]
@@ -43,13 +42,12 @@ pub struct Parser {
     tokens: Vec<Token>,
     counter: usize,
     tree: Vec<ParseValue>,
-    pub labels:HashMap<String,i32>
+    labels:HashMap<String,usize>
 }
 
 impl Parser {
     pub fn new<'a>(lexer: &'a mut Lexer<'a>) -> Self {
         let tokens = lexer.lexe().unwrap().to_vec();
-        
         Self {
             tokens,
             counter: 0,
@@ -64,32 +62,17 @@ impl Parser {
             self.counter += 1;
         }
         self.tree.push(ParseValue::EOF);
-        println!("{:?}",self.labels);
         &self.tree
     }
 
     fn parse_tokens(&mut self) {
-        let token = self.tokens[self.counter].clone();
+        let token = self.tokens[self.counter];
         match token.type_ {
-            lexer::TokenType::LABEL_DECL=>{
-                let tk = token.clone();
-                if let Some(LEXVALUES::STRING(a)) = token.value{
-                    self.labels.insert(a.clone().to_string(), (token.line) as i32);
-                }else {
-                    panic!("Expected label");
-                }
-                self.tree.push(ParseValue::NOP { token:tk });
-            }
-
             lexer::TokenType::INST_PUSH => {
                 let token_int = self.consume(TokenType::INT, "expected int ");
-                 let Some(LEXVALUES::INT(a)) = token_int.value else{
-                    panic!("expected integer");
-                };
-
                 self.tree.push(ParseValue::PUSH {
                     token,
-                    value: Literal::INT(a),
+                    value: Literal::INT(token_int.value.unwrap()),
                 });
             }
             TokenType::INST_POP => {
@@ -123,37 +106,31 @@ impl Parser {
                 self.tree.push(ParseValue::PRINT { token });
             }
             TokenType::INST_ZJMP => {
-                let token_int = self.consume(TokenType::IDENTIFIER, "expected NAME");
-                 let Some(LEXVALUES::STRING(a)) = token_int.value else{
-                    panic!("expected integer");
-                };
-    
+                let token_int = self.consume(TokenType::INT, "expected INT");
+
                 self.tree.push(ParseValue::ZJMP {
                     token,
-                    value: Literal::STRING(a.clone()),
+                    value: Literal::INT(token_int.value.unwrap()),
                 });
             }
             TokenType::INST_NZJMP => {
-              let token_int = self.consume(TokenType::IDENTIFIER, "expected NAME");
-                 let Some(LEXVALUES::STRING(a)) = token_int.value else{
+                let token_int = self.consume(TokenType::INT, "expected INT");
+                let Some(LEXVALUES::INT(a)) = token_int.value else{
                     panic!("expected integer");
                 };
-    
-                self.tree.push(ParseValue::NZJMP {
+                self.tree.push(ParseValue::NZJMP{
                     token,
-                    value: Literal::STRING(a.clone()),
+                    value: Literal::INT(a),
                 });
-
             }
             TokenType::INST_JP => {
-              let token_int = self.consume(TokenType::IDENTIFIER, "expected NAME");
-                 let Some(LEXVALUES::STRING(a)) = token_int.value else{
+                let token_int = self.consume(TokenType::INT, "expected INT");
+                let Some(LEXVALUES::INT(a)) = token_int.value else{
                     panic!("expected integer");
                 };
-    
-                self.tree.push(ParseValue::JP {
+                self.tree.push(ParseValue::JP{
                     token,
-                    value: Literal::STRING(a.clone()),
+                    value: Literal::INT(a),
                 });
             }
             TokenType::INST_CMPG => {
@@ -199,7 +176,7 @@ impl Parser {
                     value: Literal::INT(a),
                 });
             }
-            a => panic!("uknown {:?}", token),
+            a => panic!("uknown {:?}", a),
         }
     }
     pub fn consume(&mut self, expects: TokenType, error: &str) -> Token {

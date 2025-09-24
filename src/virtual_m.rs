@@ -38,7 +38,7 @@ impl Vm {
 
     pub fn start(&mut self) {
         while self.ip < self.instructions.len() {
-            //println!("{:?}",&self.stack[0..self.sp]);
+            println!("{:?}",&self.stack[0..self.sp]);
 
             let i = &self.instructions[self.ip];
             //println!("{:?}",i);

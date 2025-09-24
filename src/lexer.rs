@@ -1,8 +1,16 @@
-use std::{collections::HashMap, fmt::Display, iter::Peekable, str::Chars};
+use std::{collections::HashMap, fmt::Display, iter::Peekable, rc::Rc, str::Chars};
 
+
+#[derive(Debug,Clone)]
+pub enum LEXVALUES{
+    INT(i32),
+    STRING(Rc<String>),
+}
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TokenType {
     INT,
+    IDENTIFIER,
+    LABEL_DECL,
     INST_PUSH,
     INST_POP,
     INST_CMPE,
@@ -28,23 +36,13 @@ pub enum TokenType {
     INST_ISWAP,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub type_: TokenType,
-    pub value: Option<i32>,
+    pub value: Option<LEXVALUES>,
     pub line: usize,
 }
-impl Display for Token {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.type_ {
-            TokenType::INT => write!(f, "INT ({})", self.value.unwrap()),
-            TokenType::INST_ADD => write!(f, "ADD"),
-            TokenType::INST_PUSH => write!(f, "PUSH"),
-            TokenType::INST_POP => write!(f, "POP"),
-            _ => panic!("uknown token"),
-        }
-    }
-}
+
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
@@ -81,7 +79,7 @@ impl<'a> Lexer<'a> {
         map.insert("HALT".to_lowercase(), TokenType::INST_HALT);
         map.insert("INDUP".to_lowercase(), TokenType::INST_INDUP);
         map.insert("ISWAP".to_lowercase(), TokenType::INST_ISWAP);
-
+        println!("{:?}",data.chars());
         Self {
             data: data.chars().peekable(),
             tokens: vec![],
@@ -89,18 +87,18 @@ impl<'a> Lexer<'a> {
             line: 0,
         }
     }
-    pub fn push_token(&mut self, type_: TokenType, value: Option<i32>, line: usize) {
+    pub fn push_token(&mut self, type_: TokenType, value: Option<LEXVALUES>, line: usize) {
         let token = Token { type_, value, line };
         self.tokens.push(token);
     }
     // till the mutable reffrence is alive the result is alive
     pub fn lexe(&'a mut self) -> Result<&'a [Token], String> {
         while let Some(a) = self.data.next() {
+            if a == '\n'{
+                self.line +=1;
+            }
             match a {
                 x if x.is_ascii_whitespace() => {}
-                '\n' => {
-                    self.line += 1;
-                }
                 x if x.is_ascii_digit() && !x.is_ascii_whitespace() => {
                     let mut digit = String::new();
                     digit.push(x);
@@ -111,13 +109,13 @@ impl<'a> Lexer<'a> {
                     }
                     //println!("=>{}", digit);
                     let data: i32 = digit.parse().unwrap();
-                    self.push_token(TokenType::INT, Some(data), self.line);
+                    self.push_token(TokenType::INT, Some(LEXVALUES::INT(data)), self.line);
+
                 }
                 x if x.is_ascii_alphabetic() && !x.is_ascii_whitespace() => {
                     let mut key = String::new();
                     key.push(x);
-                    while let Some(a) = self.data.peek()
-                        && a.is_ascii_alphabetic()
+                    while let Some(a) = self.data.peek() &&  Self::is_valid(*a) 
                     {
                         let d = self.data.next().unwrap();
                         key.push(d);
@@ -126,13 +124,21 @@ impl<'a> Lexer<'a> {
                     let token = self.keywords.get(&key.to_lowercase());
                     if let Some(a) = token {
                         self.push_token(*a, None, self.line);
-                    } else {
-                        return Err(format!("uknown keyword {key}"));
+                    } else if key.contains(":"){
+                        let key = key.replace(":", "");
+                        self.push_token(TokenType::LABEL_DECL, Some(LEXVALUES::STRING(Rc::new(key))), self.line);
+                    }else {
+                        self.push_token(TokenType::IDENTIFIER, Some(LEXVALUES::STRING(Rc::new(key))), self.line);
                     }
                 }
                 _ => return Err(format!("uknown symbol {a}")),
             }
         }
         Ok(self.tokens.as_slice())
+    }
+
+
+    fn is_valid(a:char)->bool{
+       a == ':' ||  a.is_ascii_alphabetic()
     }
 }

@@ -21,9 +21,9 @@ pub enum Inst_Set {
     INST_MUL { _pad: Pad },
     INST_DIV { _pad: Pad },
     INST_PRINT { _pad: Pad },
-    INST_ZJMP { value: u32 },
-    INST_NZJMP { value: u32 },
-    INST_JP { value: u32 },
+    INST_ZJMP { value: i32 },
+    INST_NZJMP { value: i32 },
+    INST_JP { value: i32 },
     INST_CMPG { _pad: Pad },
     INST_CMPL { _pad: Pad },
     INST_MOD { _pad: Pad },
@@ -31,14 +31,14 @@ pub enum Inst_Set {
     INST_CMPLE { _pad: Pad },
     INST_NOP { _pad: Pad },
     INST_HALT { _pad: Pad },
-    INST_INDUP { value: u32 },
-    INST_ISWAP { value: u32 },
+    INST_INDUP { value: i32 },
+    INST_ISWAP { value: i32 },
 }
 impl TryFrom<u64> for Inst_Set {
     type Error = String;
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         let val = (value & 0xFFFF) as u32;
-        let value = (value >> 32) as u32;
+        let value = (value >> 32) as i32 ;
         match val {
             0 => Ok(Inst_Set::INST_PUSH {
                 value: value as i32,
@@ -53,7 +53,7 @@ impl TryFrom<u64> for Inst_Set {
             8 => Ok(Inst_Set::INST_MUL { _pad: Pad::Padding }),
             9 => Ok(Inst_Set::INST_DIV { _pad: Pad::Padding }),
             10 => Ok(Inst_Set::INST_PRINT { _pad: Pad::Padding }),
-            11 => Ok(Inst_Set::INST_ZJMP { value }),
+            11 => Ok(Inst_Set::INST_ZJMP { value  }),
             12 => Ok(Inst_Set::INST_NZJMP { value }),
             13 => Ok(Inst_Set::INST_JP { value }),
             14 => Ok(Inst_Set::INST_CMPG { _pad: Pad::Padding }),

@@ -1,4 +1,5 @@
 #![allow(non_camel_case_types)]
+use colored::*;
 use crate::instructions::Inst_Set;
 use crate::instructions::Pad;
 use crate::lexer::Lexer;
@@ -32,7 +33,7 @@ fn main() {
         println!("{:?}", arg);
         if &arg[1] == "r" {
             let code = read_from_file(&arg[2]);
-            println!("{:#?}",code);
+
             let mut vm = Vm::default();
             vm.copy_ins(&code);
             vm.start();
@@ -42,34 +43,23 @@ fn main() {
                 panic!("uknown file type");
             }
             let data = fs::read_to_string(file_name).unwrap();
+            
+            let data:String =data.lines()
+            .filter(|a| ! a.trim().is_empty())
+            .collect::<Vec<_>>().join("\n");
+            
             let mut lexer = Lexer::read_source(&data);
             let mut parser = parser::Parser::new(&mut lexer);
+            
             let codegen = codegen::CodeGen::new(&mut parser);
             let file_name =file_name.replace(".tim", ".msm");
+            
             codegen.generat_(&file_name);
+            println!("{}",format!("Build Success FILE:- {file_name}.msm").green().bold());
+            println!("{}","For execution use r flag with file name".yellow());
         }
     }
 }
-/*
-fn write_to_file(path: &str, program: &mut [Inst_Set]) {
-    let mut file = File::create(path).unwrap();
-    let bytes: &[u8] = bytemuck::must_cast_slice(program);
-    // println!("{:?}",bytes);
-    file.write_all(bytes).unwrap();
-}
-
-
-    let mut program3 = [
-        INS!(1, INST_PUSH),
-        INS!(2, INST_PUSH),
-        INS!(3, INST_PUSH),
-        INS!(4, INST_PUSH),
-        INS!(0, INST_ISWAP),
-        INS!(3, INST_INDUP),
-        INS!(INST_PRINT),
-        INS!(INST_PRINT),
-    ];
-*/
 fn read_from_file(path: &str) -> Vec<Inst_Set> {
     let mut file = File::open(path).unwrap();
     let mut data = Vec::new();

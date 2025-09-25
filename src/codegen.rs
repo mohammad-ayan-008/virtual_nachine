@@ -83,7 +83,6 @@ impl CodeGen {
                     let Literal::STRING(a) = value else{
                         panic!("Expected Label name");
                     };
-                    println!("{:?}",self.labels);
                     let value = a.deref();
                     let value= self.labels.get(value).unwrap();
                     code.push(instructions::Inst_Set::INST_JP { value: *value});                
@@ -130,7 +129,6 @@ impl CodeGen {
     fn write_to_file(path: &str, program: &mut [Inst_Set]) {
         let mut file = File::create(path).unwrap();
         let bytes: &[u8] = bytemuck::must_cast_slice(program);
-        // println!("{:?}",bytes);
         file.write_all(bytes).unwrap();
     }
 }

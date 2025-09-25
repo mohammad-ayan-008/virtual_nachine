@@ -64,7 +64,6 @@ impl Parser {
             self.counter += 1;
         }
         self.tree.push(ParseValue::EOF);
-        println!("{:?}",self.labels);
         &self.tree
     }
 

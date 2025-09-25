@@ -38,10 +38,8 @@ impl Vm {
 
     pub fn start(&mut self) {
         while self.ip < self.instructions.len() {
-            println!("{:?}",&self.stack[0..self.sp]);
-
             let i = &self.instructions[self.ip];
-            //println!("{:?}",i);
+
             match i {
                 Inst_Set::INST_INDUP { value } => {
                     self.dup(*value as usize);
@@ -58,7 +56,7 @@ impl Vm {
                 Inst_Set::INST_MOD { _pad } => {
                     let a = self.pop();
                     let b = self.pop();
-                    self.push(a % b);
+                    self.push(b % a);
                 }
                 Inst_Set::INST_CMPGE { _pad } => {
                     let a = self.pop();
@@ -173,7 +171,7 @@ impl Vm {
                 Inst_Set::INST_SUB { _pad } => {
                     let a = self.pop();
                     let b = self.pop();
-                    self.push(a - b);
+                    self.push(b-a);
                 }
                 Inst_Set::INST_MUL { _pad } => {
                     let a = self.pop();
@@ -183,10 +181,10 @@ impl Vm {
                 Inst_Set::INST_DIV { _pad } => {
                     let a = self.pop();
                     let b = self.pop();
-                    if b == 0 {
+                    if  a == 0 {
                         panic!("cannot div by zero");
                     }
-                    self.push(a / b);
+                    self.push(b/a);
                 }
                 Inst_Set::INST_PRINT { _pad } => {
                     println!("{}", self.pop());

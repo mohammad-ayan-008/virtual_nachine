@@ -2,30 +2,36 @@ push 20
 push 1
 push 1
 push 0
+
 loop:
 iswap 0
+
 dup
 push 0
 cmpe
 nzjump end
+
 pop
 iswap 0
 indup 2
 iswap 1
+
 pop
 dup
 iswap 2
 pop
+
 indup 1
 indup 2
 add
 swap
 print
+
 iswap 0
 push 1
 sub
 iswap 0
 jump loop
-end:
 
+end:
 

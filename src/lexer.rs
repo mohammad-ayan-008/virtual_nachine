@@ -79,7 +79,7 @@ impl<'a> Lexer<'a> {
         map.insert("HALT".to_lowercase(), TokenType::INST_HALT);
         map.insert("INDUP".to_lowercase(), TokenType::INST_INDUP);
         map.insert("ISWAP".to_lowercase(), TokenType::INST_ISWAP);
-        println!("{:?}",data.chars());
+        
         Self {
             data: data.chars().peekable(),
             tokens: vec![],
@@ -115,12 +115,11 @@ impl<'a> Lexer<'a> {
                 x if x.is_ascii_alphabetic() && !x.is_ascii_whitespace() => {
                     let mut key = String::new();
                     key.push(x);
-                    while let Some(a) = self.data.peek() &&  Self::is_valid(*a) 
-                    {
+                    while let Some(a) = self.data.peek() &&  Self::is_valid(*a) {
                         let d = self.data.next().unwrap();
                         key.push(d);
                     }
-                    //println!("=>{}", key);
+
                     let token = self.keywords.get(&key.to_lowercase());
                     if let Some(a) = token {
                         self.push_token(*a, None, self.line);

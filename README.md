@@ -112,13 +112,13 @@ This program demonstrates **loops, conditional jumps, and arithmetic**.
 ### 1. Build
 
 ```bash
-cargo build
+cargo build -- b filename.tsm
 ```
 
 ### 2. Run a program
 
 ```bash
-cargo run test5.msm
+cargo run -- r filename.msm
 ```
 
 ### 3. Output

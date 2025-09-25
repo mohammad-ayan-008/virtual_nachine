@@ -16,17 +16,6 @@ It supports a custom assembly-like instruction set and executes programs written
 
 ---
 
-## Project Structure
-
-```
-src/
- ├── codegen.rs       # Code generation helpers
- ├── instructions.rs  # Definition of the instruction set
- ├── lexer.rs         # Lexer for parsing .msm files
- ├── parser.rs        # Parser for assembly programs
- ├── main.rs          # Entry point
- ├── virtual_m.rs     # VM implementation
-```
 
 ---
 
